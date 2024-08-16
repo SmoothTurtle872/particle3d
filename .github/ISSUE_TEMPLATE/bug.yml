@@ -22,7 +22,7 @@ body:
         - "Command Output"
         - "Program Error"
         - "Other (Describe in notes section)"
-      validation:
+      validations:
         required: true
         
   - type: input

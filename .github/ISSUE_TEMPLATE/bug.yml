@@ -1,5 +1,5 @@
 name: Bug Report
-about: >-
+description: >-
   Do not create a repeat report unless it has been closed but is still not resolved
 title: "[BUG]:" 
 assignees: 

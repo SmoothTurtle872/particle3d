@@ -22,8 +22,8 @@ body:
         - "Command Output"
         - "Program Error"
         - "Other (Describe in notes section)"
-      validations:
-        required: true
+    validations:
+      required: true
         
   - type: input
     id: version
@@ -31,11 +31,11 @@ body:
       label: Program Version Number (Required)
       description: What program version did you use?
       placeholder: ex. V1.0.0
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
-    id: notes
+    id: recreation
     attributes:
       label: Steps to recreate (Requierd)
       description: Please provide the steps to recreate error
@@ -43,30 +43,30 @@ body:
         1. Place provided file into program
         2. Place output into minecarft datapack
         3. Run the function
-      validations:
-        required: true
+    validations:
+      required: true
         
   - type: textarea
     id: notes
     attributes:
       label: Notes (Optional)
       description: Please provide any aditional notes here
-      validations:
-        required: false
+    validations:
+      required: false
 
   - type: input
     id: files
     attributes:
       label: File(s) used (Required)
       description: Provide links to any files you used
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: errormessage
     attributes:
       label: Error Message Recieved (Required)
       description: Provide the error recieved
-      validations:
-        required: true
+    validations:
+      required: true
       

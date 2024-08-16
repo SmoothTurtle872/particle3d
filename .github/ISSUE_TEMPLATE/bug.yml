@@ -1,0 +1,72 @@
+name: Bug Report
+about: >-
+  Do not create a repeat report unless it has been closed but is still not resolved
+title: "[BUG]:" 
+assignees: 
+  - SmoothTurtle872
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thankyou for filing this report. Hopefully it will be patched soon
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type Of Bug (Required)
+      description: What type of bug is this (Command Output is for invalid commands, program error is for errors with the program)
+      multiple: false
+      options:
+        - "⸺"
+        - "Command Output"
+        - "Program Error"
+        - "Other (Describe in notes section)"
+      validation:
+        required: true
+        
+  - type: input
+    id: version
+    attributes:
+      label: Program Version Number (Required)
+      description: What program version did you use?
+      placeholder: ex. V1.0.0
+      validations:
+        required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Steps to recreate (Requierd)
+      description: Please provide the steps to recreate error
+      placeholder: >-
+        1. Place provided file into program
+        2. Place output into minecarft datapack
+        3. Run the function
+      validations:
+        required: true
+        
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes (Optional)
+      description: Please provide any aditional notes here
+      validations:
+        required: false
+
+  - type: input
+    id: files
+    attributes:
+      label: File(s) used (Required)
+      description: Provide links to any files you used
+      validations:
+        required: true
+
+  - type: textarea
+    id: errormessage
+    attributes:
+      label: Error Message Recieved (Required)
+      description: Provide the error recieved
+      validations:
+        required: true
+      

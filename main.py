@@ -6,6 +6,8 @@ import time
 import math
 # Custom
 from colorConvert import hex_to_rgb
+from spreadPoints import spreadPoints
+from objParser import load
 
 def distBetweenTwoPoints(point1:tuple[float, float, float], point2:tuple[float, float, float]):
     x1, y1, z1 = point1
@@ -76,64 +78,42 @@ def main():
     orientation = inquirer.list_input("Choose your rotation space:", choices=["~", "^"])
             
     lines = []
-    vertexes = []
-    edges = []
-    with open(name) as o:
-        lines.append("# Verticies\n")
-        for line in o:
-            coords = line.split()
-            if coords[0] == "v":
-                x = float(coords[1].strip()) * scaling
-                y = float(coords[2].strip()) * scaling
-                z = float(coords[3].strip()) * scaling
-                vertexes.append((x, y, z))
-                lines.append(f"particle dust{"{"}color:[{color[0]},{color[1]},{color[2]}],scale:1{"}"} {orientation}{x} {orientation}{y} {orientation}{z} 0 0 0 0 1 force\n")
-            elif coords[0] == "f":
-                edgeVertexes = []
-                for coord in coords:
-                    if coord == "f":
-                        continue
-                    edgeVertexes.append(int(coord.split("/")[0]))
-                for vertexA in edgeVertexes:
-        
-                   edges.append((vertexes[vertexA-1], vertexes[edgeVertexes[edgeVertexes.index(vertexA)-1]-1]))
-        if inquirer.list_input("Subdivide edges", choices=["Yes", "No"]) == "Yes":
-            lines.append("# Edges\n")
-            lowest:int | bool = False
-            divisions = 0
-            for edge in edges:
-                current = distBetweenTwoPoints(*edge)
-                if not lowest:
-                    lowest = current
-                elif current < lowest:
-                    lowest = current
-            while True:
-                try:
-                    divisions = int(input(f"Particles per {lowest} blocks: "))
-                    break
-                except ValueError:
-                    print("Input an integer value please")
-            
-            edgePoints = []
-            divisions += 1
-            spacing = int(round(lowest / divisions) + 1)
-            for edge in edges:
-                x = 0
-                y = 0
-                z = 0
-                t = spacing / (divisions - 1)
-                for _ in range(divisions):
-                    x = edge[0][0] + t * (edge[1][0] - edge[0][0])
-                    y = edge[0][1] + t * (edge[1][1] - edge[0][1])
-                    z = edge[0][2] + t * (edge[1][2] - edge[0][2])
-                    edgePoints.append((x,y,z))
-            for point in edgePoints:
-                x = float(point[0])
-                y = float(point[1])
-                z = float(point[2])
-                lines.append(f"particle dust{"{"}color:[{color[0]},{color[1]},{color[2]}],scale:1{"}"} {orientation}{x} {orientation}{y} {orientation}{z} 0 0 0 0 1 force\n")
-        
+    edges = load(name)
+    points = []
+    
+    if inquirer.list_input("Subdivide Edges", choices=["Yes", "No"]) == "Yes":
+        lowest = float('inf')
+        for edge in edges:
+            dist = distBetweenTwoPoints(edge[0], edge[1])
+            if dist < lowest:
+                lowest = dist
                 
+        while True:
+            try:
+                particlesPerBlock = int(input(f"Particles per {lowest} blocks: "))
+                if particlesPerBlock < 1:
+                    raise ValueError
+                break
+            except ValueError:
+                print("Please input a positive integer")
+                
+        spacing = lowest / (particlesPerBlock + 1)
+        
+        for edge in edges:
+            for point in spreadPoints(spacing, edge[0], edge[1]):
+                points.append(point)
+                
+    else:
+        for edge in edges:
+            points.append(edge[0])
+            points.append(edge[1])
+            
+                
+    
+    for point in points:
+        lines.append(f"particle dust{"{"}color:[{color[0]},{color[1]},{color[2]}], scale:{scaling}{"}"} {orientation}{round(point[0],3)} {orientation}{round(point[1],3)} {orientation}{round(point[2],3)}\n")
+    
+    lines = set(lines)
     
     with open(f"{name[0:-4]}.mcfunction", "w") as o:
         for command in lines:

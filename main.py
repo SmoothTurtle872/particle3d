@@ -4,6 +4,7 @@ import inquirer
 import os
 import time
 import math
+import sys
 # Custom
 from colorConvert import hex_to_rgb
 from spreadPoints import spreadPoints
@@ -34,7 +35,7 @@ def main():
         time.sleep(0.5)
         print("Quitting...")
         time.sleep(0.5)
-        quit()
+        sys.exit(0)
         
     # - Getting user Selected File
     name = inquirer.list_input("Select a file",choices = foundFiles)

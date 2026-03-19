@@ -228,3 +228,30 @@ pub mod visuals {
         }
     }
 }
+
+pub mod loader {
+    use std::path::PathBuf;
+
+    use super::visuals::Particle;
+    use obj::{Obj, ObjData, ObjError};
+
+    pub struct ParticleCloud {
+        pub obj: ObjData,
+        pub particle: Particle,
+    }
+
+    impl ParticleCloud {
+        pub fn new(path: PathBuf, particle: Particle) -> Result<ParticleCloud, ObjError> {
+            let obj = Obj::load(path);
+            match obj {
+                Ok(obj_) => {
+                    return Ok(ParticleCloud {
+                        obj: obj_.data,
+                        particle,
+                    });
+                }
+                Err(err) => Err(err),
+            }
+        }
+    }
+}

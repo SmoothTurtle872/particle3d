@@ -1,15 +1,36 @@
 pub mod visuals {
+    use std::fmt::format;
+
     use color_art::Color;
 
-    pub fn parse_mc_color(color: &Color, alpha_as_size: bool) -> String {
-        let r = color.red() as f32 / 255.0;
-        let g = color.green() as f32 / 255.0;
-        let b = color.blue() as f32 / 255.0;
-        let opaque = format!("color:[{},{},{}]", r, g, b);
-        if alpha_as_size {
-            return format!("{}, scale:{}", opaque, color.alpha());
+    pub enum TransparencyType {
+        None,
+        NoneSized,
+        Size,
+        Direct,
+    }
+
+    pub fn parse_mc_color(color: &Color, transparency: TransparencyType) -> String {
+        let r = (color.red() as u32) << 16;
+        let g = (color.red() as u32) << 8;
+        let b = (color.red() as u32);
+        let opaque = r + b + g;
+        match transparency {
+            TransparencyType::None => {
+                return format!("color:{}", opaque);
+            }
+            TransparencyType::NoneSized => {
+                return format!("color:{}, scale:1.0", opaque);
+            }
+            TransparencyType::Size => {
+                return format!("color:{}, scale:{}", opaque, color.alpha());
+            }
+            TransparencyType::Direct => {
+                let a = (color.alpha() as u32) << 24;
+                let color = opaque + a;
+                return format!("color:{}", color);
+            }
         }
-        return format!("{}, scale:1.0", opaque);
     }
 
     #[derive(Debug, Clone, PartialEq)]
@@ -61,6 +82,7 @@ pub mod visuals {
         Firefly,
         Fishing,
         Flame,
+        Flash(Color),
         Glow,
         GlowSquidInk,
         Gust,
@@ -124,9 +146,32 @@ pub mod visuals {
             match self {
                 // ---------------------custom--------------------- //
                 Self::Other(v) => write!(f, "{}", v),
-                Self::Dust(c, b) => write!(f, "{}", parse_mc_color(c, *b)),
-                Self::Effect(c) => write!(f, "{}", parse_mc_color(c, false)),
-                Self::EntityEffect(c) => write!(f, "{}", parse_mc_color(c, false)),
+                Self::Dust(c, b) => {
+                    if *b {
+                        write!(
+                            f,
+                            "dust{{{}}}",
+                            parse_mc_color(c, TransparencyType::NoneSized)
+                        )
+                    } else {
+                        write!(f, "dust{{{}}}", parse_mc_color(c, TransparencyType::Size))
+                    }
+                }
+                Self::Effect(c) => {
+                    write!(f, "effect{{{}}}", parse_mc_color(c, TransparencyType::None))
+                }
+                Self::EntityEffect(c) => {
+                    write!(
+                        f,
+                        "entity_effect{{{}}}",
+                        parse_mc_color(c, TransparencyType::Direct)
+                    )
+                }
+                Self::Flash(c) => write!(
+                    f,
+                    "flash{{{}}}",
+                    parse_mc_color(c, TransparencyType::Direct)
+                ),
                 // ----------------------standard------------------- //
                 Self::AngryVillager => write!(f, "angry_villager"),
                 Self::Ash => write!(f, "ash"),

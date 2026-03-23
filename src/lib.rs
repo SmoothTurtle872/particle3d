@@ -274,17 +274,12 @@ pub mod visuals {
 }
 
 pub mod loader {
-    use std::{
-        fs,
-        fs::File,
-        io::{BufReader, Read},
-        path::Path,
-    };
+    use std::{fs, path::Path};
 
     use super::visuals::Particle;
     use wavefront_obj::{
         ParseError,
-        obj::{Geometry, ObjSet, Object, Primitive, Vertex, parse},
+        obj::{Geometry, Object, Primitive, Vertex, parse},
     };
     #[derive(Debug, Clone, PartialEq)]
     pub struct ParticleCloud {
@@ -307,6 +302,16 @@ pub mod loader {
                 Err(err) => Err(err),
             }
         }
+
+        pub fn get_flattened_vertex_list(&self) -> Vec<&Vertex> {
+            let mut vertecies: Vec<&Vertex> = vec![];
+            for object in &self.obj {
+                for vertex in &object.vertices {
+                    vertecies.push(vertex);
+                }
+            }
+            vertecies
+        }
     }
 }
 
@@ -322,5 +327,15 @@ mod tests {
             .len();
 
         assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn vertex_count() {
+        let count = ParticleCloud::new("test-object.obj", Particle::AngryVillager)
+            .unwrap()
+            .get_flattened_vertex_list()
+            .len();
+
+        assert_eq!(count, 507);
     }
 }

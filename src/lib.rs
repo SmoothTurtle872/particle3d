@@ -1,5 +1,4 @@
 pub mod visuals {
-    use std::fmt::format;
 
     use color_art::Color;
 
@@ -13,7 +12,7 @@ pub mod visuals {
     pub fn parse_mc_color(color: &Color, transparency: TransparencyType) -> String {
         let r = (color.red() as u32) << 16;
         let g = (color.red() as u32) << 8;
-        let b = (color.red() as u32);
+        let b = color.red() as u32;
         let opaque = r + b + g;
         match transparency {
             TransparencyType::None => {
@@ -275,28 +274,53 @@ pub mod visuals {
 }
 
 pub mod loader {
-    use std::path::PathBuf;
+    use std::{
+        fs,
+        fs::File,
+        io::{BufReader, Read},
+        path::Path,
+    };
 
     use super::visuals::Particle;
-    use obj::{Obj, ObjData, ObjError};
-
+    use wavefront_obj::{
+        ParseError,
+        obj::{Geometry, ObjSet, Object, Primitive, Vertex, parse},
+    };
+    #[derive(Debug, Clone, PartialEq)]
     pub struct ParticleCloud {
-        pub obj: ObjData,
+        pub obj: Vec<Object>,
         pub particle: Particle,
     }
 
     impl ParticleCloud {
-        pub fn new(path: PathBuf, particle: Particle) -> Result<ParticleCloud, ObjError> {
-            let obj = Obj::load(path);
-            match obj {
-                Ok(obj_) => {
-                    return Ok(ParticleCloud {
-                        obj: obj_.data,
-                        particle,
-                    });
-                }
+        pub fn new<T: AsRef<Path>>(
+            path: T,
+            particle: Particle,
+        ) -> Result<ParticleCloud, ParseError> {
+            let file = fs::read_to_string(path).unwrap();
+            let model = parse(file);
+            match model {
+                Ok(obj) => Ok(ParticleCloud {
+                    obj: obj.objects,
+                    particle,
+                }),
                 Err(err) => Err(err),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::{loader::*, visuals::*};
+    #[test]
+    fn object_count() {
+        let count = ParticleCloud::new("test-object.obj", Particle::AngryVillager)
+            .unwrap()
+            .obj
+            .len();
+
+        assert_eq!(count, 1);
     }
 }

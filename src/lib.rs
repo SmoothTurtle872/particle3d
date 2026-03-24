@@ -248,10 +248,18 @@ pub mod visuals {
             }
         }
     }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub enum ParticleGroupType {
+        Single(Particle),
+        Multi(Vec<Particle>),
+    }
 }
 
 pub mod loader {
     use std::{fs, path::Path};
+
+    use crate::visuals::ParticleGroupType;
 
     use super::visuals::Particle;
     use wavefront_obj::{
@@ -261,13 +269,13 @@ pub mod loader {
     #[derive(Debug, Clone, PartialEq)]
     pub struct ParticleCloud {
         pub obj: Vec<Object>,
-        pub particle: Particle,
+        pub particle: ParticleGroupType,
     }
 
     impl ParticleCloud {
         pub fn new<T: AsRef<Path>>(
             path: T,
-            particle: Particle,
+            particle: ParticleGroupType,
         ) -> Result<ParticleCloud, ParseError> {
             let file = fs::read_to_string(path).unwrap();
             let model = parse(file);
@@ -287,7 +295,19 @@ pub mod loader {
                     vertecies.push(vertex);
                 }
             }
-            vertecies
+            return vertecies;
+        }
+
+        pub fn get_object_vertex_list(&self) -> Vec<Vec<&Vertex>> {
+            let mut groups: Vec<Vec<&Vertex>> = vec![];
+            for object in &self.obj {
+                let mut verticies: Vec<&Vertex> = vec![];
+                for vertex in &object.vertices {
+                    verticies.push(vertex);
+                }
+                groups.push(verticies);
+            }
+            return groups;
         }
     }
 }
@@ -300,22 +320,61 @@ mod tests {
     use super::{loader::*, visuals::*};
     #[test]
     fn object_count() {
-        let count = ParticleCloud::new("test-object.obj", Particle::AngryVillager)
-            .unwrap()
-            .obj
-            .len();
+        let count = ParticleCloud::new(
+            "test-object.obj",
+            ParticleGroupType::Single(Particle::AngryVillager),
+        )
+        .unwrap()
+        .obj
+        .len();
 
-        assert_eq!(count, 1);
+        let multi_count = ParticleCloud::new(
+            "test-object-multi.obj",
+            ParticleGroupType::Single(Particle::AngryVillager),
+        )
+        .unwrap()
+        .obj
+        .len();
+
+        assert_eq!(multi_count, 2);
     }
 
     #[test]
     fn vertex_count() {
-        let count = ParticleCloud::new("test-object.obj", Particle::AngryVillager)
-            .unwrap()
-            .get_flattened_vertex_list()
-            .len();
+        let count = ParticleCloud::new(
+            "test-object.obj",
+            ParticleGroupType::Single(Particle::AngryVillager),
+        )
+        .unwrap()
+        .get_flattened_vertex_list()
+        .len();
 
         assert_eq!(count, 507);
+
+        let count = ParticleCloud::new(
+            "test-object-multi.obj",
+            ParticleGroupType::Single(Particle::AngryVillager),
+        )
+        .unwrap()
+        .get_flattened_vertex_list()
+        .len();
+
+        assert_eq!(count, 549);
+
+        let model = ParticleCloud::new(
+            "test-object-multi.obj",
+            ParticleGroupType::Single(Particle::AngryVillager),
+        )
+        .unwrap();
+
+        let vertex_groups = model.get_object_vertex_list();
+
+        assert_eq!(vertex_groups.len(), 2);
+
+        let count_1 = vertex_groups[0].len();
+        let count_2 = vertex_groups[1].len();
+        assert_eq!(count_1, 507);
+        assert_eq!(count_2, 42);
     }
 
     #[test]

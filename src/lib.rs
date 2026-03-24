@@ -2,33 +2,17 @@ pub mod visuals {
 
     use color_art::Color;
 
-    pub enum TransparencyType {
-        None,
-        NoneSized,
-        Size,
-        Direct,
-    }
-
-    pub fn parse_mc_color(color: &Color, transparency: TransparencyType) -> String {
+    pub fn parse_mc_color(color: &Color, transparency: bool) -> u32 {
         let r = (color.red() as u32) << 16;
         let g = (color.red() as u32) << 8;
         let b = color.red() as u32;
         let opaque = r + b + g;
-        match transparency {
-            TransparencyType::None => {
-                return format!("color:{}", opaque);
-            }
-            TransparencyType::NoneSized => {
-                return format!("color:{}, scale:1.0", opaque);
-            }
-            TransparencyType::Size => {
-                return format!("color:{}, scale:{}", opaque, color.alpha());
-            }
-            TransparencyType::Direct => {
-                let a = (color.alpha() as u32) << 24;
-                let color = opaque + a;
-                return format!("color:{}", color);
-            }
+        if !transparency {
+            return opaque;
+        } else {
+            let a = (color.alpha() as u32) << 24;
+            let color = opaque + a;
+            return color;
         }
     }
 
@@ -147,30 +131,23 @@ pub mod visuals {
                 Self::Other(v) => write!(f, "{}", v),
                 Self::Dust(c, b) => {
                     if *b {
+                        write!(f, "dust{{color:{},scale:1.0}}", parse_mc_color(c, false))
+                    } else {
                         write!(
                             f,
-                            "dust{{{}}}",
-                            parse_mc_color(c, TransparencyType::NoneSized)
+                            "dust{{color:{},scale:{}}}",
+                            parse_mc_color(c, false),
+                            c.alpha()
                         )
-                    } else {
-                        write!(f, "dust{{{}}}", parse_mc_color(c, TransparencyType::Size))
                     }
                 }
                 Self::Effect(c) => {
-                    write!(f, "effect{{{}}}", parse_mc_color(c, TransparencyType::None))
+                    write!(f, "effect{{color:{}}}", parse_mc_color(c, false))
                 }
                 Self::EntityEffect(c) => {
-                    write!(
-                        f,
-                        "entity_effect{{{}}}",
-                        parse_mc_color(c, TransparencyType::Direct)
-                    )
+                    write!(f, "entity_effect{{color:{}}}", parse_mc_color(c, true))
                 }
-                Self::Flash(c) => write!(
-                    f,
-                    "flash{{{}}}",
-                    parse_mc_color(c, TransparencyType::Direct)
-                ),
+                Self::Flash(c) => write!(f, "flash{{color:{}}}", parse_mc_color(c, true)),
                 // ----------------------standard------------------- //
                 Self::AngryVillager => write!(f, "angry_villager"),
                 Self::Ash => write!(f, "ash"),

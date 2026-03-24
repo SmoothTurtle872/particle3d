@@ -4,8 +4,8 @@ pub mod visuals {
 
     pub fn parse_mc_color(color: &Color, transparency: bool) -> u32 {
         let r = (color.red() as u32) << 16;
-        let g = (color.red() as u32) << 8;
-        let b = color.red() as u32;
+        let g = (color.green() as u32) << 8;
+        let b = color.blue() as u32;
         let opaque = r + b + g;
         if !transparency {
             return opaque;
@@ -295,6 +295,8 @@ pub mod loader {
 #[cfg(test)]
 mod tests {
 
+    use color_art::Color;
+
     use super::{loader::*, visuals::*};
     #[test]
     fn object_count() {
@@ -314,5 +316,15 @@ mod tests {
             .len();
 
         assert_eq!(count, 507);
+    }
+
+    #[test]
+    fn color() {
+        let color = Color::new(128, 74, 112, 0.7);
+        let no_trans = parse_mc_color(&color, false);
+        let with_trans = parse_mc_color(&color, true);
+
+        assert_eq!(no_trans, 8407664);
+        assert_eq!(with_trans, 2994752112);
     }
 }

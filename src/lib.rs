@@ -10,7 +10,7 @@ pub mod visuals {
         if !transparency {
             return opaque;
         } else {
-            let a = (color.alpha() as u32) << 24;
+            let a = ((color.alpha() * 255.0) as u32) << 24;
             let color = opaque + a;
             return color;
         }

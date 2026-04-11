@@ -265,6 +265,14 @@ pub mod loader {
         ParseError,
         obj::{Geometry, Object, Primitive, Vertex, parse},
     };
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct Edge {
+        pub object: usize,
+        pub start: usize,
+        pub end: usize,
+    }
+
     #[derive(Debug, Clone, PartialEq)]
     pub struct ParticleCloud {
         pub obj: Vec<Object>,
@@ -309,6 +317,39 @@ pub mod loader {
             return groups;
         }
 
+        pub fn get_edges(&self) -> Vec<Edge> {
+            let mut edges: Vec<Edge> = vec![];
+
+            for (idx, object) in self.obj.iter().enumerate() {
+                for geo in &object.geometry {
+                    for shape in &geo.shapes {
+                        match shape.primitive {
+                            Primitive::Triangle(a, b, c) => {
+                                edges.push(Edge {
+                                    object: idx,
+                                    start: a.0,
+                                    end: b.0,
+                                });
+                                edges.push(Edge {
+                                    object: idx,
+                                    start: a.0,
+                                    end: c.0,
+                                });
+                                edges.push(Edge {
+                                    object: idx,
+                                    start: b.0,
+                                    end: c.0,
+                                });
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+
+            edges
+        }
+
         pub fn output(&self) -> String {
             let mut output: String = String::from(
                 "# File Generated with Particle3D - https://github.com/SmoothTurtle872/particle3d \n",
@@ -348,6 +389,7 @@ pub mod loader {
 mod tests {
 
     use color_art::Color;
+    use wavefront_obj::obj::{self, Primitive};
 
     use super::{loader::*, visuals::*};
     #[test]
@@ -409,6 +451,43 @@ mod tests {
         let count_2 = vertex_groups[1].len();
         assert_eq!(count_1, 507);
         assert_eq!(count_2, 42);
+    }
+
+    #[test]
+    fn shapes() {
+        let object = &ParticleCloud::new(
+            "test-object.obj",
+            ParticleGroupType::Single(Particle::AngryVillager),
+        )
+        .unwrap()
+        .obj[0];
+
+        let geo = &object.geometry;
+        assert_eq!(geo[0].shapes.len(), 967);
+
+        let first_shape = geo[0].shapes[0].primitive;
+        match first_shape {
+            Primitive::Triangle(a, b, c) => {
+                assert_eq!(a.0, 44);
+                assert_eq!(b.0, 46);
+                assert_eq!(c.0, 2);
+            }
+            _ => {
+                panic!("IMPOSSIBLE STATE")
+            }
+        };
+    }
+
+    #[test]
+    fn edges() {
+        let object = ParticleCloud::new(
+            "test-object.obj",
+            ParticleGroupType::Single(Particle::AngryVillager),
+        )
+        .unwrap()
+        .get_edges();
+
+        assert_eq!(object.len(), 2901)
     }
 
     #[test]

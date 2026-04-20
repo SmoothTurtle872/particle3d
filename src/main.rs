@@ -1,6 +1,4 @@
-use eframe::egui;
-
-use particle3d::cloud::ParticleCloud;
+use particle3d::gui::app::App;
 
 static APP_NAME: &str = "Particle 3D";
 static VERSION: &str = "2.0.0";
@@ -12,19 +10,4 @@ fn main() {
         native_options,
         Box::new(|cc| Ok(Box::new(App::new(cc)))),
     )
-}
-
-#[derive(Default)]
-struct App {
-    cloud: Option<ParticleCloud>,
-}
-
-impl App {
-    fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        Self::default()
-    }
-}
-
-impl eframe::App for App {
-    fn ui(&mut self, ui: &mut egui::Ui, frame: &mut eframe::Frame) {}
 }

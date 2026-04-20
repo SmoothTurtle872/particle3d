@@ -5,7 +5,6 @@ pub mod loader;
 pub use crate::loader::cloud;
 
 pub mod gui;
-pub use crate::gui::states;
 
 #[cfg(test)]
 mod tests {

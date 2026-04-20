@@ -358,37 +358,24 @@ pub mod loader {
             edges
         }
 
-        pub fn output(&self) -> String {
+        pub fn output(&self) -> Result<String, &str> {
             let mut output: String = String::from(
                 "# File Generated with Particle3D - https://github.com/SmoothTurtle872/particle3d \n",
             );
 
-            match &self.particle {
-                ParticleGroupType::Single(particle) => {
-                    let verts = self.get_flattened_vertex_list();
+            match &self.cached_points {
+                Some(verts) => {
                     for vert in verts {
                         let line = format!(
-                            "particle {} ~{} ~{} ~{}\n",
-                            particle, vert.x, vert.y, vert.z
+                            "particle {} {} {} {} 0 0 0 0 1 force @a\n",
+                            vert.particle, vert.vertex.x, vert.vertex.y, vert.vertex.z
                         );
-                        output = output + &line;
+                        output += &line;
                     }
+                    return Ok(output);
                 }
-                ParticleGroupType::Multi(particles) => {
-                    let groups = self.get_object_vertex_list();
-                    for (particle, verts) in particles.iter().zip(groups.iter()) {
-                        for vert in verts {
-                            let line = format!(
-                                "particle {} ~{} ~{} ~{}\n",
-                                particle, vert.x, vert.y, vert.z
-                            );
-                            output = output + &line;
-                        }
-                    }
-                }
+                None => return Err("No Cached Points!"),
             }
-
-            return output;
         }
 
         pub fn cache_points(&mut self, subdivide_edges: bool, points_per_edge: Option<i32>) {

@@ -4,7 +4,7 @@ pub use crate::visuals::particle;
 pub mod loader;
 pub use crate::loader::cloud;
 
-pub mod gui;
+pub mod ui;
 
 #[cfg(test)]
 mod tests {

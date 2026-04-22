@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 color-art = "0.3.9"
-eframe = "0.34.1"
+iced = "0.14.0"
 wavefront_obj = "11.0.0"

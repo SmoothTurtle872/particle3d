@@ -13,9 +13,14 @@ pub mod app {
     #[derive(Default)]
     pub struct App {
         cloud: State,
+        pub title: String,
     }
 
     impl App {
+        pub fn get_title(state: &App) -> String {
+            state.title.clone()
+        }
+
         pub fn view(state: &App) -> Element<'_, Message> {
             match &state.cloud {
                 State::Unloaded => state.unloaded(),

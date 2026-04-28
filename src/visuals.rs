@@ -19,8 +19,9 @@ pub mod particle {
     #[derive(Debug, Clone, PartialEq)]
     pub struct Point(pub f32, pub f32, pub f32);
 
-    #[derive(Debug, Clone, PartialEq)]
+    #[derive(Debug, Clone, PartialEq, Default)]
     pub enum Particle {
+        #[default]
         AngryVillager,
         Ash,
         Bubble,
@@ -249,9 +250,131 @@ pub mod particle {
         }
     }
 
+    impl Particle {
+        pub fn get_option_list() -> [Particle; 96] {
+            [
+                Self::AngryVillager,
+                Self::Ash,
+                Self::Bubble,
+                Self::BubbleColumnUp,
+                Self::BubblePop,
+                Self::CampfireCosySmoke,
+                Self::CampfireSginalSmoke,
+                Self::CherryLeaves,
+                Self::Cloud,
+                Self::Composter,
+                Self::CopperFireFlame,
+                Self::CrimsonSpore,
+                Self::Crit,
+                Self::CurrentDown,
+                Self::DamageIndicator,
+                Self::Dolphin,
+                Self::DragonBreath,
+                Self::DrippingDripstoneLava,
+                Self::DrippingDripstoneWater,
+                Self::DrippingHoney,
+                Self::DrippingLava,
+                Self::DrippingObsidianTear,
+                Self::DrippingWater,
+                Self::EggCrack,
+                Self::ElderGuardian,
+                Self::ElectricSpark,
+                Self::Enchant,
+                Self::EndRod,
+                Self::Explosion,
+                Self::ExplosionEmitter,
+                Self::FallingDripstoneLava,
+                Self::FallingDripstoneWater,
+                Self::FallingHoney,
+                Self::FallingLava,
+                Self::FallingNectar,
+                Self::FallingObsidianTear,
+                Self::FallingSporeBlossom,
+                Self::FallingWater,
+                Self::Firefly,
+                Self::Fishing,
+                Self::Flame,
+                Self::Glow,
+                Self::GlowSquidInk,
+                Self::Gust,
+                Self::GustEmitter,
+                Self::HappyVillager,
+                Self::Heart,
+                Self::Infested,
+                Self::ItemCobweb,
+                Self::ItemSlime,
+                Self::ItemSnowball,
+                Self::LandingHoney,
+                Self::LandingLava,
+                Self::LandingObsidianTear,
+                Self::LargeSmoke,
+                Self::Lava,
+                Self::Mycelium,
+                Self::Nautilus,
+                Self::OminousSpawning,
+                Self::PaleOakLeaves,
+                Self::PauseMobGrowth,
+                Self::Poof,
+                Self::Portal,
+                Self::RaidOmen,
+                Self::Rain,
+                Self::ResetMobGrowth,
+                Self::ReversePortal,
+                Self::Scrape,
+                Self::SculkChargePop,
+                Self::SculkSoul,
+                Self::Shriek,
+                Self::SmallFlame,
+                Self::SmallGust,
+                Self::Smoke,
+                Self::Sneeze,
+                Self::Snowflake,
+                Self::SonicBoom,
+                Self::Soul,
+                Self::SoulFireFlame,
+                Self::Spit,
+                Self::Splash,
+                Self::SporeBlossomAir,
+                Self::SquidInk,
+                Self::SweepAttack,
+                Self::TotemOfUndying,
+                Self::TrialOmen,
+                Self::TrialSpawnerDetection,
+                Self::TrialSpawnerDetectionOminous,
+                Self::Underwater,
+                Self::VaultConnection,
+                Self::WarpedSpore,
+                Self::WaxOff,
+                Self::WaxOn,
+                Self::WhiteAsh,
+                Self::WhiteSmoke,
+                Self::Witch,
+            ]
+        }
+    }
+
     #[derive(Debug, Clone, PartialEq)]
     pub enum ParticleGroupType {
         Single(Particle),
         Multi(Vec<Particle>),
+    }
+
+    impl Default for ParticleGroupType {
+        fn default() -> Self {
+            ParticleGroupType::Single(Particle::AngryVillager)
+        }
+    }
+
+    impl std::fmt::Display for ParticleGroupType {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                Self::Multi(_) => {
+                    write!(f, "Multiple")
+                }
+                Self::Single(_) => {
+                    write!(f, "Single")
+                }
+            }
+        }
     }
 }

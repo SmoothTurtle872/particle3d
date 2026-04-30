@@ -1,7 +1,7 @@
 pub mod app {
     use iced::{
         Element,
-        widget::{button, center, checkbox, column, pick_list, row, text},
+        widget::{button, center, checkbox, column, pick_list, row, table::Column, text},
     };
 
     use rfd::FileDialog;
@@ -43,6 +43,11 @@ pub mod app {
                         }
                     }
                 }
+                Message::SetParticle(particle) => {
+                    if let State::Loaded(cloud) = &mut state.cloud {
+                        cloud.particle = ParticleGroupType::Single(particle);
+                    }
+                }
                 _ => {}
             }
         }
@@ -60,64 +65,6 @@ pub mod app {
                     cloud.particle = ParticleGroupType::Single(Particle::AngryVillager);
                 }
             }
-        }
-
-        fn unloaded(&self) -> Element<'_, Message> {
-            center(
-                column![
-                    text("No OBJ Loaded"),
-                    button("Load OBJ").on_press(Message::Load)
-                ]
-                .spacing(10),
-            )
-            .into()
-        }
-
-        fn loaded(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
-            let multi_object = cloud.obj.len() > 1;
-
-            let mut particle_settings = if multi_object {
-                column![row![
-                    "Individual Particles Per Object:   ",
-                    checkbox(self.is_multi).on_toggle(Message::ToggleParticleGroupMultiState),
-                ]]
-            } else {
-                column![row!["Particle Input"]]
-            };
-
-            if multi_object && self.is_multi {
-                let mut inputs = column![];
-                if let ParticleGroupType::Multi(particles) = &cloud.particle {
-                    for (idx, _) in cloud.obj.iter().enumerate() {
-                        inputs = inputs.push(row![
-                            text(format!("Object {idx}: ")),
-                            pick_list(
-                                Particle::get_option_list(),
-                                Some(particles[idx].clone()),
-                                move |particle| { Message::SetParticleInList(idx, particle) }
-                            )
-                        ]);
-                    }
-                }
-                particle_settings = particle_settings.push(inputs);
-            } else {
-                particle_settings = particle_settings.push(row!["Particle Input"])
-            }
-
-            let column = column![particle_settings];
-
-            column.into()
-        }
-
-        fn error(&self) -> Element<'_, Message> {
-            center(
-                column![
-                    text("Error Loading File"),
-                    button("Load OBJ").on_press(Message::Load)
-                ]
-                .spacing(10),
-            )
-            .into()
         }
 
         fn load(&mut self) {
@@ -155,5 +102,74 @@ pub mod app {
         Unloaded,
         Error,
         Loaded(ParticleCloud),
+    }
+
+    // UI - States
+    impl App {
+        fn unloaded(&self) -> Element<'_, Message> {
+            center(self.load_button("Error Loading OBJ".to_string())).into()
+        }
+        fn loaded(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
+            let column = column![self.particle_selector(cloud)].spacing(10);
+            column.into()
+        }
+        fn error(&self) -> Element<'_, Message> {
+            center(self.load_button("Error Loading OBJ".to_string())).into()
+        }
+    }
+
+    // UI - Widgets
+    impl App {
+        fn load_button(&self, info_message: String) -> Element<'_, Message> {
+            column![
+                text(info_message),
+                button("Load OBJ").on_press(Message::Load)
+            ]
+            .spacing(10)
+            .into()
+        }
+        fn particle_selector(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
+            let multi_object = cloud.obj.len() > 1;
+
+            let mut inputs = if multi_object {
+                column![
+                    row![
+                        "Individual Particles Per Object: ",
+                        checkbox(self.is_multi).on_toggle(Message::ToggleParticleGroupMultiState)
+                    ]
+                    .spacing(10)
+                ]
+            } else {
+                column![]
+            };
+
+            if self.is_multi && multi_object {
+                if let ParticleGroupType::Multi(particles) = &cloud.particle {
+                    for (idx, _) in cloud.obj.iter().enumerate() {
+                        inputs = inputs.push(row![
+                            text(format!("Object {idx}: ")),
+                            pick_list(
+                                Particle::get_option_list(),
+                                Some(particles[idx].clone()),
+                                move |particle| { Message::SetParticleInList(idx, particle) }
+                            )
+                        ]);
+                    }
+                }
+            } else {
+                if let ParticleGroupType::Single(particle) = &cloud.particle {
+                    inputs = inputs.push(row![
+                        "Particle: ",
+                        pick_list(
+                            Particle::get_option_list(),
+                            Some(particle.clone()),
+                            Message::SetParticle
+                        )
+                    ]);
+                }
+            }
+
+            inputs.spacing(10).into()
+        }
     }
 }

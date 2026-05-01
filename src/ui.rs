@@ -1,9 +1,12 @@
 pub mod app {
     use iced::{
         Element,
-        widget::{button, center, checkbox, column, pick_list, row, table::Column, text},
+        widget::{
+            button, center, checkbox, column, pick_list, row, table::Column, text, text_input,
+        },
     };
 
+    use iced_aw::{NumberInput, number_input};
     use rfd::FileDialog;
 
     use super::super::{
@@ -15,6 +18,8 @@ pub mod app {
         cloud: State,
         pub title: String,
         is_multi: bool,
+        subdivide_edges: bool,
+        edge_subdivisions: Option<i32>,
     }
 
     impl App {
@@ -48,7 +53,22 @@ pub mod app {
                         cloud.particle = ParticleGroupType::Single(particle);
                     }
                 }
+                Message::SetSubdivideEdgeState(toggle) => {
+                    state.update_edge_division_state(toggle);
+                }
+                Message::SetEdgeSubdivisions(divisions) => {
+                    state.edge_subdivisions = Some(divisions)
+                }
                 _ => {}
+            }
+        }
+
+        fn update_edge_division_state(&mut self, state: bool) {
+            self.subdivide_edges = state;
+            if state {
+                self.edge_subdivisions = Some(1)
+            } else {
+                self.edge_subdivisions = None
             }
         }
 
@@ -94,6 +114,8 @@ pub mod app {
         ToggleParticleGroupMultiState(bool),
         SetParticle(Particle),
         SetParticleInList(usize, Particle),
+        SetSubdivideEdgeState(bool),
+        SetEdgeSubdivisions(i32),
     }
 
     #[derive(Debug, Clone, Default)]
@@ -110,7 +132,7 @@ pub mod app {
             center(self.load_button("Error Loading OBJ".to_string())).into()
         }
         fn loaded(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
-            let column = column![self.particle_selector(cloud)].spacing(10);
+            let column = column![self.particle_selector(cloud), self.edge_subdividor()].spacing(10);
             column.into()
         }
         fn error(&self) -> Element<'_, Message> {
@@ -170,6 +192,27 @@ pub mod app {
             }
 
             inputs.spacing(10).into()
+        }
+        fn edge_subdividor(&self) -> Element<'_, Message> {
+            let mut widget = column![
+                row![
+                    "Subdivide Edges: ",
+                    checkbox(self.subdivide_edges).on_toggle(Message::SetSubdivideEdgeState)
+                ]
+                .spacing(10)
+            ];
+            if self.subdivide_edges
+                && let Some(number) = self.edge_subdivisions
+            {
+                widget = widget.push(
+                    row![
+                        "Subdvisions: ",
+                        NumberInput::new(&number, 1..=10, Message::SetEdgeSubdivisions)
+                    ]
+                    .spacing(10),
+                );
+            };
+            widget.spacing(10).into()
         }
     }
 }

@@ -1,5 +1,5 @@
 pub mod cloud {
-    use std::{fs, path::Path};
+    use std::{fmt::write, fs, path::Path};
 
     use crate::visuals::particle::{Particle, ParticleGroupType};
 
@@ -100,16 +100,20 @@ pub mod cloud {
             edges
         }
 
-        pub fn output(&self) -> Result<String, &str> {
+        pub fn output(&self, rotation_space: RotationSpace) -> Result<String, &str> {
             let mut output: String = String::from(
                 "# File Generated with Particle3D - https://github.com/SmoothTurtle872/particle3d \n",
             );
+            let rotation_space = match rotation_space {
+                RotationSpace::Global => "~",
+                RotationSpace::Local => "^",
+            };
 
             match &self.cached_points {
                 Some(verts) => {
                     for vert in verts {
                         let line = format!(
-                            "particle {} {} {} {} 0 0 0 0 1 force @a\n",
+                            "particle {} {rotation_space}{} {rotation_space}{} {rotation_space}{} 0 0 0 0 1 force @a\n",
                             vert.particle, vert.vertex.x, vert.vertex.y, vert.vertex.z
                         );
                         output += &line;
@@ -215,6 +219,22 @@ pub mod cloud {
                 }
             };
             self.cached_points = Some(verts);
+        }
+    }
+
+    #[derive(Debug, Default, PartialEq, Clone)]
+    pub enum RotationSpace {
+        #[default]
+        Global,
+        Local,
+    }
+
+    impl std::fmt::Display for RotationSpace {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                Self::Global => write!(f, "Global"),
+                Self::Local => write!(f, "Local"),
+            }
         }
     }
 }

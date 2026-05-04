@@ -1,13 +1,13 @@
 pub mod app {
     use iced::{
         Element,
-        widget::{
-            button, center, checkbox, column, pick_list, row, table::Column, text, text_input,
-        },
+        widget::{button, center, checkbox, column, pick_list, row, text},
     };
 
-    use iced_aw::{NumberInput, number_input};
+    use iced_aw::NumberInput;
     use rfd::FileDialog;
+
+    use crate::cloud::RotationSpace;
 
     use super::super::{
         cloud::ParticleCloud,
@@ -20,6 +20,7 @@ pub mod app {
         is_multi: bool,
         subdivide_edges: bool,
         edge_subdivisions: Option<i32>,
+        rotation_space: RotationSpace,
     }
 
     impl App {
@@ -59,6 +60,7 @@ pub mod app {
                 Message::SetEdgeSubdivisions(divisions) => {
                     state.edge_subdivisions = Some(divisions)
                 }
+                Message::SetRotationSpace(space) => state.rotation_space = space,
                 _ => {}
             }
         }
@@ -116,6 +118,7 @@ pub mod app {
         SetParticleInList(usize, Particle),
         SetSubdivideEdgeState(bool),
         SetEdgeSubdivisions(i32),
+        SetRotationSpace(RotationSpace),
     }
 
     #[derive(Debug, Clone, Default)]
@@ -132,7 +135,12 @@ pub mod app {
             center(self.load_button("Error Loading OBJ".to_string())).into()
         }
         fn loaded(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
-            let column = column![self.particle_selector(cloud), self.edge_subdividor()].spacing(10);
+            let column = column![
+                self.particle_selector(cloud),
+                self.edge_subdividor(),
+                self.rotation_selector()
+            ]
+            .spacing(10);
             column.into()
         }
         fn error(&self) -> Element<'_, Message> {
@@ -213,6 +221,18 @@ pub mod app {
                 );
             };
             widget.spacing(10).into()
+        }
+        fn rotation_selector(&self) -> Element<'_, Message> {
+            row![
+                "Rotation Space: ",
+                pick_list(
+                    [RotationSpace::Global, RotationSpace::Local],
+                    Some(self.rotation_space.clone()),
+                    Message::SetRotationSpace
+                )
+            ]
+            .spacing(10)
+            .into()
         }
     }
 }

@@ -1,7 +1,7 @@
 use particle3d::ui::app::App;
 
 static APP_NAME: &str = "Particle 3D";
-static VERSION: &str = "2.0.0";
+static VERSION: &str = "2.0.0 (beta 1a)";
 
 fn main() -> iced::Result {
     iced::application(new, App::update, App::view)

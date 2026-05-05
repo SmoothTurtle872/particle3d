@@ -1,7 +1,7 @@
 pub mod app {
     use iced::{
         Element,
-        widget::{button, center, checkbox, column, pick_list, row, text},
+        widget::{bottom, button, center, center_x, checkbox, column, pick_list, row, text},
     };
 
     use iced_aw::NumberInput;
@@ -132,7 +132,7 @@ pub mod app {
     // UI - States
     impl App {
         fn unloaded(&self) -> Element<'_, Message> {
-            center(self.load_button("Error Loading OBJ".to_string())).into()
+            center(self.load_button("Error Loading OBJ".to_string(), false)).into()
         }
         fn loaded(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
             let column = column![
@@ -141,22 +141,37 @@ pub mod app {
                 self.rotation_selector()
             ]
             .spacing(10);
-            column.into()
+            column![
+                center(column),
+                center_x(bottom(row![
+                    self.load_button("Change OBJ File: ".to_string(), true)
+                ]))
+            ]
+            .into()
         }
         fn error(&self) -> Element<'_, Message> {
-            center(self.load_button("Error Loading OBJ".to_string())).into()
+            center(self.load_button("Error Loading OBJ".to_string(), false)).into()
         }
     }
 
     // UI - Widgets
     impl App {
-        fn load_button(&self, info_message: String) -> Element<'_, Message> {
-            column![
-                text(info_message),
-                button("Load OBJ").on_press(Message::Load)
-            ]
-            .spacing(10)
-            .into()
+        fn load_button(&self, info_message: String, inline: bool) -> Element<'_, Message> {
+            if !inline {
+                column![
+                    text(info_message),
+                    button("Load OBJ").on_press(Message::Load)
+                ]
+                .spacing(10)
+                .into()
+            } else {
+                row![
+                    text(info_message),
+                    button("Load OBJ").on_press(Message::Load)
+                ]
+                .spacing(10)
+                .into()
+            }
         }
         fn particle_selector(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
             let multi_object = cloud.obj.len() > 1;

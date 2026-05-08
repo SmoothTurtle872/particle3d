@@ -6,6 +6,10 @@ pub mod app {
 
     use iced_aw::NumberInput;
     use rfd::FileDialog;
+    use std::{
+        fs::{self, File},
+        io::Write,
+    };
 
     use crate::cloud::RotationSpace;
 
@@ -61,7 +65,27 @@ pub mod app {
                     state.edge_subdivisions = Some(divisions)
                 }
                 Message::SetRotationSpace(space) => state.rotation_space = space,
-                _ => {}
+                Message::Export => state.export(),
+            }
+        }
+
+        fn export(&mut self) {
+            if let State::Loaded(cloud) = &mut self.cloud {
+                cloud.cache_points(self.subdivide_edges, self.edge_subdivisions);
+
+                let export_path = rfd::FileDialog::new()
+                    .add_filter("Mcfunction File", &["mcfunction"])
+                    .set_can_create_directories(true)
+                    .set_directory("/")
+                    .set_title("Export to MCfunction")
+                    .save_file();
+
+                if let Some(path) = export_path {
+                    let output = cloud.output(self.rotation_space.clone());
+                    if let Ok(data) = output {
+                        fs::write(path, data);
+                    }
+                }
             }
         }
 
@@ -119,6 +143,7 @@ pub mod app {
         SetSubdivideEdgeState(bool),
         SetEdgeSubdivisions(i32),
         SetRotationSpace(RotationSpace),
+        Export,
     }
 
     #[derive(Debug, Clone, Default)]
@@ -132,7 +157,7 @@ pub mod app {
     // UI - States
     impl App {
         fn unloaded(&self) -> Element<'_, Message> {
-            center(self.load_button("Error Loading OBJ".to_string(), false)).into()
+            center(self.load_button("No OBJ File Loaded".to_string(), false)).into()
         }
         fn loaded(&self, cloud: &ParticleCloud) -> Element<'_, Message> {
             let column = column![
@@ -143,9 +168,18 @@ pub mod app {
             .spacing(10);
             column![
                 center(column),
-                center_x(bottom(row![
-                    self.load_button("Change OBJ File: ".to_string(), true)
-                ]))
+                center_x(bottom(
+                    row![
+                        self.load_button("Change OBJ File: ".to_string(), true),
+                        " | ",
+                        row![
+                            "Export to mcfunction: ",
+                            button("Export").on_press(Message::Export)
+                        ]
+                        .spacing(10)
+                    ]
+                    .spacing(10)
+                ))
             ]
             .into()
         }

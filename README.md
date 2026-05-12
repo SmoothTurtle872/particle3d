@@ -1,9 +1,24 @@
-# Particle 3d
-## ❓How to use ❓
-1. Create a `.obj` file
-2. Place the `.obj` file in the same directory or any sub-directories next to the application
-3. Run the application
-4. Select your `.obj` file
-5. Follow the rest of the prompts
-6. Find your outputted `.mcfunction` file in the same directory as your `.obj` file
-7. Place the `.mcfunction` file in a datapack and run it
+# Particle 3d [2.0.0 beta 1a]
+> This is currently in beta as a rust rewrite
+
+> ![visual](./App.png)
+## How to use ❓
+1. Create a model in blender or simmilar modelling software
+2. Ensure this model is triangulated
+3. Export as a `.obj` file
+4. Open the app
+5. Select the `.obj` file
+6. Set your settings (particle(s), rotation space, edge subdivisions)
+7. Export the `.mcfunction` file to your datapack
+
+## Examples
+### Single Object
+#### Cube
+> A simple cube to demonstrate the idea  
+
+> ![cube](./examples/SingleObject/cube.png)
+
+#### Suzzane
+> A more complex model, also its the blender monkey
+
+> ![cube](./examples/SingleObject/suzzane.png)

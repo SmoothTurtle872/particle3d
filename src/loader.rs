@@ -155,9 +155,9 @@ pub mod cloud {
                                 (x_dir.powf(2_f64) + y_dir.powf(2_f64) + z_dir.powf(2_f64)).sqrt();
 
                             let (x_dir, y_dir, z_dir) = (
-                                (x_dir) / (dist / (edge_divisor + 1) as f64),
-                                (y_dir) / (dist / (edge_divisor + 1) as f64),
-                                (z_dir) / (dist / (edge_divisor + 1) as f64),
+                                ((x_dir) / (dist as f64)) * (edge_divisor + 1) as f64,
+                                ((y_dir) / (dist as f64)) * (edge_divisor + 1) as f64,
+                                ((z_dir) / (dist as f64)) * (edge_divisor + 1) as f64,
                             );
 
                             let mut current_pos: Vertex = start.clone();

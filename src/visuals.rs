@@ -129,26 +129,21 @@ pub mod particle {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             match self {
                 // ---------------------custom--------------------- //
-                Self::Other(v) => write!(f, "{}", v),
+                Self::Other(v) => write!(f, "other"),
                 Self::Dust(c, b) => {
                     if *b {
-                        write!(f, "dust{{color:{},scale:1.0}}", parse_mc_color(c, false))
+                        write!(f, "dust")
                     } else {
-                        write!(
-                            f,
-                            "dust{{color:{},scale:{}}}",
-                            parse_mc_color(c, false),
-                            c.alpha()
-                        )
+                        write!(f, "dust")
                     }
                 }
                 Self::Effect(c) => {
-                    write!(f, "effect{{color:{}}}", parse_mc_color(c, false))
+                    write!(f, "effect")
                 }
                 Self::EntityEffect(c) => {
-                    write!(f, "entity_effect{{color:{}}}", parse_mc_color(c, true))
+                    write!(f, "entity_effect")
                 }
-                Self::Flash(c) => write!(f, "flash{{color:{}}}", parse_mc_color(c, true)),
+                Self::Flash(c) => write!(f, "flash"),
                 // ----------------------standard------------------- //
                 Self::AngryVillager => write!(f, "angry_villager"),
                 Self::Ash => write!(f, "ash"),
@@ -251,6 +246,35 @@ pub mod particle {
     }
 
     impl Particle {
+        pub fn output(&self) -> String {
+            match self {
+                // --------------------- Custom ----------------------- //
+                Self::Other(v) => format!("{}", v),
+                Self::Dust(c, b) => {
+                    if *b {
+                        format!("dust{{color:{},scale:1.0}}", parse_mc_color(c, false))
+                    } else {
+                        format!(
+                            "dust{{color:{},scale:{}}}",
+                            parse_mc_color(c, false),
+                            c.alpha()
+                        )
+                    }
+                }
+                Self::Effect(c) => {
+                    format!("effect{{color:{}}}", parse_mc_color(c, false))
+                }
+                Self::EntityEffect(c) => {
+                    format!("entity_effect{{color:{}}}", parse_mc_color(c, true))
+                }
+                Self::Flash(c) => format!("flash{{color:{}}}", parse_mc_color(c, true)),
+                // --------------------- Normal ----------------------- //
+                _ => {
+                    format!("{}", self)
+                }
+            }
+        }
+
         pub fn get_option_list() -> [Particle; 96] {
             [
                 Self::AngryVillager,

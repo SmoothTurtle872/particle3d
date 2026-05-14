@@ -114,7 +114,10 @@ pub mod cloud {
                     for vert in verts {
                         let line = format!(
                             "particle {} {rotation_space}{} {rotation_space}{} {rotation_space}{} 0 0 0 0 1 force @a\n",
-                            vert.particle, vert.vertex.x, vert.vertex.y, vert.vertex.z
+                            vert.particle.output(),
+                            vert.vertex.x,
+                            vert.vertex.y,
+                            vert.vertex.z
                         );
                         output += &line;
                     }

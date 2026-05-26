@@ -2,6 +2,8 @@ pub mod particle {
 
     use color_art::Color;
 
+    use crate::particle::ParticleSetting::SingleColorSized;
+
     pub fn parse_mc_color(color: &Color, transparency: bool) -> u32 {
         let r = (color.red() as u32) << 16;
         let g = (color.green() as u32) << 8;
@@ -45,14 +47,14 @@ pub mod particle {
         DrippingLava,
         DrippingObsidianTear,
         DrippingWater,
-        Dust(Color, bool),
-        Effect(Color),
+        Dust,
+        Effect,
         EggCrack,
         ElderGuardian,
         ElectricSpark,
         Enchant,
         EndRod,
-        EntityEffect(Color),
+        EntityEffect,
         Explosion,
         ExplosionEmitter,
         FallingDripstoneLava,
@@ -66,7 +68,7 @@ pub mod particle {
         Firefly,
         Fishing,
         Flame,
-        Flash(Color),
+        Flash,
         Glow,
         GlowSquidInk,
         Gust,
@@ -122,28 +124,22 @@ pub mod particle {
         WhiteAsh,
         WhiteSmoke,
         Witch,
-        Other(String),
+        Other,
     }
 
     impl std::fmt::Display for Particle {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             match self {
                 // ---------------------custom--------------------- //
-                Self::Other(v) => write!(f, "other"),
-                Self::Dust(c, b) => {
-                    if *b {
-                        write!(f, "dust")
-                    } else {
-                        write!(f, "dust")
-                    }
-                }
-                Self::Effect(c) => {
+                Self::Other => write!(f, "other"),
+                Self::Dust => write!(f, "dust"),
+                Self::Effect => {
                     write!(f, "effect")
                 }
-                Self::EntityEffect(c) => {
+                Self::EntityEffect => {
                     write!(f, "entity_effect")
                 }
-                Self::Flash(c) => write!(f, "flash"),
+                Self::Flash => write!(f, "flash"),
                 // ----------------------standard------------------- //
                 Self::AngryVillager => write!(f, "angry_villager"),
                 Self::Ash => write!(f, "ash"),
@@ -248,26 +244,6 @@ pub mod particle {
     impl Particle {
         pub fn output(&self) -> String {
             match self {
-                // --------------------- Custom ----------------------- //
-                Self::Other(v) => format!("{}", v),
-                Self::Dust(c, b) => {
-                    if *b {
-                        format!("dust{{color:{},scale:1.0}}", parse_mc_color(c, false))
-                    } else {
-                        format!(
-                            "dust{{color:{},scale:{}}}",
-                            parse_mc_color(c, false),
-                            c.alpha()
-                        )
-                    }
-                }
-                Self::Effect(c) => {
-                    format!("effect{{color:{}}}", parse_mc_color(c, false))
-                }
-                Self::EntityEffect(c) => {
-                    format!("entity_effect{{color:{}}}", parse_mc_color(c, true))
-                }
-                Self::Flash(c) => format!("flash{{color:{}}}", parse_mc_color(c, true)),
                 // --------------------- Normal ----------------------- //
                 _ => {
                     format!("{}", self)
@@ -275,7 +251,7 @@ pub mod particle {
             }
         }
 
-        pub fn get_option_list() -> [Particle; 96] {
+        pub fn get_option_list() -> [Particle; 97] {
             [
                 Self::AngryVillager,
                 Self::Ash,
@@ -373,19 +349,20 @@ pub mod particle {
                 Self::WhiteAsh,
                 Self::WhiteSmoke,
                 Self::Witch,
+                Self::Other,
             ]
         }
     }
 
     #[derive(Debug, Clone, PartialEq)]
     pub enum ParticleGroupType {
-        Single(Particle),
-        Multi(Vec<Particle>),
+        Single(Particle, ParticleSetting),
+        Multi(Vec<(Particle, ParticleSetting)>),
     }
 
     impl Default for ParticleGroupType {
         fn default() -> Self {
-            ParticleGroupType::Single(Particle::AngryVillager)
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None)
         }
     }
 
@@ -395,9 +372,32 @@ pub mod particle {
                 Self::Multi(_) => {
                     write!(f, "Multiple")
                 }
-                Self::Single(_) => {
+                Self::Single(_, _) => {
                     write!(f, "Single")
                 }
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, PartialEq, Default)]
+    pub enum ParticleSetting {
+        #[default]
+        None,
+        SingleColor(Color),
+        SingleColorTransp(Color),
+        SingleColorSized(Color, f32),
+        Other(String),
+    }
+
+    impl ParticleSetting {
+        pub fn from_particle(particle: &Particle) -> Self {
+            match particle {
+                Particle::Flash | Particle::EntityEffect => {
+                    Self::SingleColorTransp(Color::default())
+                }
+                Particle::Dust => SingleColorSized(Color::default(), 1.0),
+                Particle::Other => Self::Other("".to_string()),
+                _ => Self::None,
             }
         }
     }

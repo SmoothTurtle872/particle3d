@@ -6,16 +6,16 @@ pub mod app {
 
     use iced_aw::NumberInput;
     use rfd::FileDialog;
-    use std::{
-        fs::{self, File},
-        io::Write,
-    };
+    use std::fs;
 
-    use crate::cloud::RotationSpace;
+    use crate::{cloud::RotationSpace, particle::ParticleSetting};
 
-    use super::super::{
-        cloud::ParticleCloud,
-        visuals::particle::{Particle, ParticleGroupType},
+    use super::{
+        super::{
+            cloud::ParticleCloud,
+            visuals::particle::{Particle, ParticleGroupType},
+        },
+        widgets::*,
     };
     #[derive(Default)]
     pub struct App {
@@ -49,13 +49,14 @@ pub mod app {
                 Message::SetParticleInList(id, particle) => {
                     if let State::Loaded(cloud) = &mut state.cloud {
                         if let ParticleGroupType::Multi(list) = &mut cloud.particle {
-                            list[id] = particle;
+                            list[id].0 = particle;
                         }
                     }
                 }
                 Message::SetParticle(particle) => {
                     if let State::Loaded(cloud) = &mut state.cloud {
-                        cloud.particle = ParticleGroupType::Single(particle);
+                        let setting = ParticleSetting::from_particle(&particle);
+                        cloud.particle = ParticleGroupType::Single(particle, setting);
                     }
                 }
                 Message::SetSubdivideEdgeState(toggle) => {
@@ -66,6 +67,7 @@ pub mod app {
                 }
                 Message::SetRotationSpace(space) => state.rotation_space = space,
                 Message::Export => state.export(),
+                _ => {}
             }
         }
 
@@ -102,13 +104,14 @@ pub mod app {
             self.is_multi = state;
             if let State::Loaded(cloud) = &mut self.cloud {
                 if state {
-                    let mut particles: Vec<Particle> = vec![];
+                    let mut particles: Vec<(Particle, ParticleSetting)> = vec![];
                     for _ in 0..cloud.obj.len() {
-                        particles.push(Particle::AngryVillager);
+                        particles.push((Particle::AngryVillager, ParticleSetting::None));
                     }
                     cloud.particle = ParticleGroupType::Multi(particles);
                 } else {
-                    cloud.particle = ParticleGroupType::Single(Particle::AngryVillager);
+                    cloud.particle =
+                        ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None);
                 }
             }
         }
@@ -122,7 +125,7 @@ pub mod app {
                 Some(path) => {
                     let cloud_loader = ParticleCloud::new(
                         path,
-                        ParticleGroupType::Single(Particle::AngryVillager),
+                        ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
                     );
                     match cloud_loader {
                         Ok(cloud) => self.cloud = State::Loaded(cloud),
@@ -140,6 +143,8 @@ pub mod app {
         ToggleParticleGroupMultiState(bool),
         SetParticle(Particle),
         SetParticleInList(usize, Particle),
+        SetParticleSetting(ParticleSetting),
+        SetParticleSettingInList(usize, ParticleSetting),
         SetSubdivideEdgeState(bool),
         SetEdgeSubdivisions(i32),
         SetRotationSpace(RotationSpace),
@@ -225,26 +230,17 @@ pub mod app {
             if self.is_multi && multi_object {
                 if let ParticleGroupType::Multi(particles) = &cloud.particle {
                     for (idx, _) in cloud.obj.iter().enumerate() {
-                        inputs = inputs.push(row![
-                            text(format!("Object {idx}: ")),
-                            pick_list(
-                                Particle::get_option_list(),
-                                Some(particles[idx].clone()),
-                                move |particle| { Message::SetParticleInList(idx, particle) }
-                            )
-                        ]);
+                        inputs = inputs.push(particle_selector(
+                            particles[idx].0.clone(),
+                            particles[idx].1.clone(),
+                            Some(idx),
+                        ));
                     }
                 }
             } else {
-                if let ParticleGroupType::Single(particle) = &cloud.particle {
-                    inputs = inputs.push(row![
-                        "Particle: ",
-                        pick_list(
-                            Particle::get_option_list(),
-                            Some(particle.clone()),
-                            Message::SetParticle
-                        )
-                    ]);
+                if let ParticleGroupType::Single(particle, setting) = &cloud.particle {
+                    inputs =
+                        inputs.push(particle_selector(particle.clone(), setting.clone(), None));
                 }
             }
 
@@ -282,6 +278,88 @@ pub mod app {
             ]
             .spacing(10)
             .into()
+        }
+    }
+}
+
+mod widgets {
+    use super::app::Message;
+    use iced::{
+        Element,
+        widget::{
+            bottom, button, center, center_x, checkbox, column, combo_box, container, pick_list,
+            row, text, text_input,
+        },
+    };
+
+    use iced_aw::{ColorPicker, NumberInput};
+
+    use crate::particle::{Particle, ParticleSetting};
+
+    pub fn particle_selector(
+        particle: Particle,
+        setting: ParticleSetting,
+        index: Option<usize>,
+    ) -> Element<'static, Message> {
+        match index {
+            None => {
+                let mut setter = column![
+                    row![
+                        "Particle: ",
+                        pick_list(
+                            Particle::get_option_list(),
+                            Some(particle.clone()),
+                            Message::SetParticle
+                        )
+                    ]
+                    .spacing(10)
+                ];
+                match setting {
+                    ParticleSetting::None => {}
+                    ParticleSetting::Other(value) => {
+                        setter = setter.push(row![
+                            "Particle: ",
+                            text_input("custom_particle", &value)
+                                .on_input(|value| {
+                                    Message::SetParticleSetting(ParticleSetting::Other(
+                                        value.to_string(),
+                                    ))
+                                })
+                                .width(200)
+                        ]);
+                    }
+                    ParticleSetting::SingleColorSized(color, size) => {
+                        setter = setter.push(row![
+                            "Color: ",
+                            "Size: ",
+                            NumberInput::new(&size, 0.01..5.0, move |num| {
+                                Message::SetParticleSetting(ParticleSetting::SingleColorSized(
+                                    color, num,
+                                ))
+                            })
+                        ]);
+                    }
+                    ParticleSetting::SingleColorTransp(color) => {
+                        setter = setter.push(row!["Color: "]);
+                    }
+                    ParticleSetting::SingleColor(color) => {
+                        setter = setter.push(row!["Color: "]);
+                    }
+                }
+                setter.spacing(10).into()
+            }
+            Some(idx) => column![
+                "Object {idx}",
+                row![
+                    "Particle: ",
+                    pick_list(
+                        Particle::get_option_list(),
+                        Some(particle.clone()),
+                        move |particle| { Message::SetParticleInList(idx, particle) }
+                    )
+                ]
+            ]
+            .into(),
         }
     }
 }

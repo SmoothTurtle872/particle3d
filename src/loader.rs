@@ -1,7 +1,7 @@
 pub mod cloud {
     use std::{fs, path::Path};
 
-    use crate::visuals::particle::{Particle, ParticleGroupType};
+    use crate::visuals::particle::{Particle, ParticleGroupType, ParticleSetting};
 
     use wavefront_obj::{
         ParseError,
@@ -12,6 +12,7 @@ pub mod cloud {
     pub struct Vert {
         pub vertex: Vertex,
         pub particle: Particle,
+        pub particle_setting: ParticleSetting,
     }
 
     #[derive(Debug, Clone, PartialEq)]
@@ -137,12 +138,13 @@ pub mod cloud {
             }
             let mut verts: Vec<Vert> = vec![];
             match &self.particle {
-                ParticleGroupType::Single(particle) => {
+                ParticleGroupType::Single(particle, setting) => {
                     let vertecies = self.get_flattened_vertex_list();
                     for vertex in vertecies {
                         verts.push(Vert {
                             vertex: vertex.clone(),
                             particle: particle.clone(),
+                            particle_setting: setting.clone(),
                         });
                     }
                     if subdivide_edges {
@@ -172,19 +174,21 @@ pub mod cloud {
                                 verts.push(Vert {
                                     vertex: current_pos.clone(),
                                     particle: particle.clone(),
+                                    particle_setting: setting.clone(),
                                 });
                             }
                         }
                     }
                 }
                 ParticleGroupType::Multi(particles) => {
-                    for (particle, vertex_list) in
+                    for ((particle, setting), vertex_list) in
                         particles.iter().zip(self.get_object_vertex_list())
                     {
                         for vertex in vertex_list {
                             verts.push(Vert {
                                 vertex: vertex.clone(),
                                 particle: particle.clone(),
+                                particle_setting: setting.clone(),
                             });
                         }
                     }
@@ -212,9 +216,11 @@ pub mod cloud {
                                 current_pos.x += x_dir;
                                 current_pos.y += y_dir;
                                 current_pos.z += z_dir;
+                                let (particle, particle_setting) = particles[edge.object].clone();
                                 verts.push(Vert {
                                     vertex: current_pos.clone(),
-                                    particle: particles[edge.object].clone(),
+                                    particle,
+                                    particle_setting,
                                 });
                             }
                         }

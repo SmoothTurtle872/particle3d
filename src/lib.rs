@@ -9,6 +9,9 @@ pub mod ui;
 #[cfg(test)]
 mod tests {
 
+    static SINGLE_OBJECT: &str = "examples/SingleObject/cube.obj";
+    static MULTI_OBJECT: &str = "examples/MultiObject/ball_suzzane.obj";
+
     use color_art::Color;
     use wavefront_obj::obj::Primitive;
 
@@ -16,8 +19,8 @@ mod tests {
     #[test]
     fn object_count() {
         let count = ParticleCloud::new(
-            "test-object.obj",
-            ParticleGroupType::Single(Particle::AngryVillager),
+            SINGLE_OBJECT,
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
         )
         .unwrap()
         .obj
@@ -26,8 +29,8 @@ mod tests {
         assert_eq!(count, 1);
 
         let multi_count = ParticleCloud::new(
-            "test-object-multi.obj",
-            ParticleGroupType::Single(Particle::AngryVillager),
+            MULTI_OBJECT,
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
         )
         .unwrap()
         .obj
@@ -39,18 +42,18 @@ mod tests {
     #[test]
     fn vertex_count() {
         let count = ParticleCloud::new(
-            "test-object.obj",
-            ParticleGroupType::Single(Particle::AngryVillager),
+            SINGLE_OBJECT,
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
         )
         .unwrap()
         .get_flattened_vertex_list()
         .len();
 
-        assert_eq!(count, 507);
+        assert_eq!(count, 8);
 
         let count = ParticleCloud::new(
-            "test-object-multi.obj",
-            ParticleGroupType::Single(Particle::AngryVillager),
+            MULTI_OBJECT,
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
         )
         .unwrap()
         .get_flattened_vertex_list()
@@ -59,8 +62,8 @@ mod tests {
         assert_eq!(count, 549);
 
         let model = ParticleCloud::new(
-            "test-object-multi.obj",
-            ParticleGroupType::Single(Particle::AngryVillager),
+            MULTI_OBJECT,
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
         )
         .unwrap();
 
@@ -77,20 +80,20 @@ mod tests {
     #[test]
     fn shapes() {
         let object = &ParticleCloud::new(
-            "test-object.obj",
-            ParticleGroupType::Single(Particle::AngryVillager),
+            SINGLE_OBJECT,
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
         )
         .unwrap()
         .obj[0];
 
         let geo = &object.geometry;
-        assert_eq!(geo[0].shapes.len(), 967);
+        assert_eq!(geo[0].shapes.len(), 12);
 
         let first_shape = geo[0].shapes[0].primitive;
         match first_shape {
             Primitive::Triangle(a, b, c) => {
-                assert_eq!(a.0, 44);
-                assert_eq!(b.0, 46);
+                assert_eq!(a.0, 0);
+                assert_eq!(b.0, 1);
                 assert_eq!(c.0, 2);
             }
             _ => {
@@ -102,13 +105,13 @@ mod tests {
     #[test]
     fn edges() {
         let object = ParticleCloud::new(
-            "test-object.obj",
-            ParticleGroupType::Single(Particle::AngryVillager),
+            SINGLE_OBJECT,
+            ParticleGroupType::Single(Particle::AngryVillager, ParticleSetting::None),
         )
         .unwrap()
         .get_edges();
 
-        assert_eq!(object.len(), 2901)
+        assert_eq!(object.len(), 36)
     }
 
     #[test]

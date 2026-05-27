@@ -49,6 +49,7 @@ pub mod app {
                 Message::SetParticleInList(id, particle) => {
                     if let State::Loaded(cloud) = &mut state.cloud {
                         if let ParticleGroupType::Multi(list) = &mut cloud.particle {
+                            list[id].1 = ParticleSetting::from_particle(&particle);
                             list[id].0 = particle;
                         }
                     }
@@ -67,7 +68,20 @@ pub mod app {
                 }
                 Message::SetRotationSpace(space) => state.rotation_space = space,
                 Message::Export => state.export(),
-                _ => {}
+                Message::SetParticleSetting(setting) => {
+                    if let State::Loaded(cloud) = &mut state.cloud {
+                        if let ParticleGroupType::Single(particle, _) = &cloud.particle {
+                            cloud.particle = ParticleGroupType::Single(particle.clone(), setting);
+                        }
+                    }
+                }
+                Message::SetParticleSettingInList(idx, setting) => {
+                    if let State::Loaded(cloud) = &mut state.cloud {
+                        if let ParticleGroupType::Multi(group) = &mut cloud.particle {
+                            group[idx] = (group[idx].0.clone(), setting);
+                        }
+                    }
+                }
             }
         }
 
@@ -348,18 +362,54 @@ mod widgets {
                 }
                 setter.spacing(10).into()
             }
-            Some(idx) => column![
-                "Object {idx}",
-                row![
-                    "Particle: ",
-                    pick_list(
-                        Particle::get_option_list(),
-                        Some(particle.clone()),
-                        move |particle| { Message::SetParticleInList(idx, particle) }
-                    )
-                ]
-            ]
-            .into(),
+            Some(idx) => {
+                let mut setter = column![
+                    row!["Object", text(idx)].spacing(10),
+                    row![
+                        "Particle: ",
+                        pick_list(
+                            Particle::get_option_list(),
+                            Some(particle.clone()),
+                            move |particle| { Message::SetParticleInList(idx, particle) }
+                        )
+                    ]
+                ];
+                match setting {
+                    ParticleSetting::None => {}
+                    ParticleSetting::Other(value) => {
+                        setter = setter.push(row![
+                            "Particle: ",
+                            text_input("custom_particle", &value)
+                                .on_input(move |value| {
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::Other(value.to_string()),
+                                    )
+                                })
+                                .width(200)
+                        ]);
+                    }
+                    ParticleSetting::SingleColorSized(color, size) => {
+                        setter = setter.push(row![
+                            "Color: ",
+                            "Size: ",
+                            NumberInput::new(&size, 0.01..5.0, move |num| {
+                                Message::SetParticleSettingInList(
+                                    idx,
+                                    ParticleSetting::SingleColorSized(color, num),
+                                )
+                            })
+                        ]);
+                    }
+                    ParticleSetting::SingleColorTransp(color) => {
+                        setter = setter.push(row!["Color: "]);
+                    }
+                    ParticleSetting::SingleColor(color) => {
+                        setter = setter.push(row!["Color: "]);
+                    }
+                }
+                setter.into()
+            }
         }
     }
 }

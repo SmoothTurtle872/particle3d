@@ -244,6 +244,7 @@ pub mod particle {
     impl Particle {
         pub fn output(&self) -> String {
             match self {
+                Self::Other => "".to_string(),
                 // --------------------- Normal ----------------------- //
                 _ => {
                     format!("{}", self)
@@ -398,6 +399,22 @@ pub mod particle {
                 Particle::Dust => SingleColorSized(Color::default(), 1.0),
                 Particle::Other => Self::Other("".to_string()),
                 _ => Self::None,
+            }
+        }
+
+        pub fn output(&self) -> String {
+            match self {
+                Self::None => "".to_string(),
+                Self::Other(value) => value.clone(),
+                Self::SingleColor(color) => {
+                    format!("{{color:{}}}", parse_mc_color(color, false))
+                }
+                Self::SingleColorTransp(color) => {
+                    format!("{{color:{}}}", parse_mc_color(color, true))
+                }
+                Self::SingleColorSized(color, size) => {
+                    format!("{{color:{}, scale:{}}}", parse_mc_color(color, false), size)
+                }
             }
         }
     }

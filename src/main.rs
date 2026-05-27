@@ -2,7 +2,7 @@ use iced::window::{Settings, icon};
 use particle3d::ui::app::App;
 
 static APP_NAME: &str = "Particle 3D";
-static VERSION: &str = "2.0.0 (beta 1a)";
+static VERSION: &str = "2.0.0 (beta 2a)";
 
 fn main() -> iced::Result {
     let settings = Settings {

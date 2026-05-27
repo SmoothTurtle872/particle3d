@@ -114,8 +114,9 @@ pub mod cloud {
                 Some(verts) => {
                     for vert in verts {
                         let line = format!(
-                            "particle {} {rotation_space}{} {rotation_space}{} {rotation_space}{} 0 0 0 0 1 force @a\n",
+                            "particle {}{} {rotation_space}{} {rotation_space}{} {rotation_space}{} 0 0 0 0 1 force @a\n",
                             vert.particle.output(),
+                            vert.particle_setting.output(),
                             vert.vertex.x,
                             vert.vertex.y,
                             vert.vertex.z

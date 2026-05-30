@@ -1,7 +1,10 @@
 pub mod app {
     use iced::{
         Element,
-        widget::{bottom, button, center, center_x, checkbox, column, pick_list, row, text},
+        widget::{
+            bottom, button, center, center_x, checkbox, column, container, pick_list, row,
+            scrollable, text,
+        },
     };
 
     use iced_aw::NumberInput;
@@ -99,7 +102,7 @@ pub mod app {
                 if let Some(path) = export_path {
                     let output = cloud.output(self.rotation_space.clone());
                     if let Ok(data) = output {
-                        fs::write(path, data);
+                        _ = fs::write(path, data);
                     }
                 }
             }
@@ -258,7 +261,7 @@ pub mod app {
                 }
             }
 
-            inputs.spacing(10).into()
+            container(scrollable(inputs.spacing(10))).into()
         }
         fn edge_subdividor(&self) -> Element<'_, Message> {
             let mut widget = column![
@@ -300,13 +303,11 @@ mod widgets {
     use super::app::Message;
     use iced::{
         Element,
-        widget::{
-            bottom, button, center, center_x, checkbox, column, combo_box, container, pick_list,
-            row, text, text_input,
-        },
+        widget::{Button, canvas, column, pick_list, row, slider, text, text_input},
     };
 
-    use iced_aw::{ColorPicker, NumberInput};
+    use iced_aw::NumberInput;
+    use iced_color_wheel::{WheelProgram, color_to_hsv, hsv_to_color};
 
     use crate::particle::{Particle, ParticleSetting};
 
@@ -334,7 +335,7 @@ mod widgets {
                         setter = setter.push(row![
                             "Particle: ",
                             text_input("custom_particle", &value)
-                                .on_input(|value| {
+                                .on_input(move |value| {
                                     Message::SetParticleSetting(ParticleSetting::Other(
                                         value.to_string(),
                                     ))
@@ -343,21 +344,105 @@ mod widgets {
                         ]);
                     }
                     ParticleSetting::SingleColorSized(color, size) => {
-                        setter = setter.push(row![
-                            "Color: ",
-                            "Size: ",
-                            NumberInput::new(&size, 0.01..5.0, move |num| {
-                                Message::SetParticleSetting(ParticleSetting::SingleColorSized(
-                                    color, num,
-                                ))
-                            })
+                        let (hue, saturation, value) = color_to_hsv(color);
+                        setter = setter.push(column![
+                            row![
+                                "Color: ",
+                                canvas(WheelProgram::new(hue, saturation, value, move |h, s| {
+                                    let color = hsv_to_color(h, s, value);
+                                    Message::SetParticleSetting(ParticleSetting::SingleColorSized(
+                                        color, size,
+                                    ))
+                                }))
+                                .width(100)
+                                .height(100),
+                            ],
+                            row![
+                                "Value: ",
+                                slider(0.0..=1.0, value, move |val| {
+                                    let color = hsv_to_color(hue, saturation, val);
+                                    Message::SetParticleSetting(ParticleSetting::SingleColorSized(
+                                        color, size,
+                                    ))
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ],
+                            row![
+                                "Size: ",
+                                NumberInput::new(&size, 0.01..=5.0, move |num| {
+                                    Message::SetParticleSetting(ParticleSetting::SingleColorSized(
+                                        color, num,
+                                    ))
+                                })
+                                .step(0.01)
+                            ]
                         ]);
                     }
                     ParticleSetting::SingleColorTransp(color) => {
-                        setter = setter.push(row!["Color: "]);
+                        let alpha = color.a;
+                        let (hue, saturation, value) = color_to_hsv(color);
+                        setter = setter.push(column![
+                            row![
+                                "Color: ",
+                                canvas(WheelProgram::new(hue, saturation, value, move |h, s| {
+                                    let mut color = hsv_to_color(h, s, value);
+                                    color.a = alpha;
+                                    Message::SetParticleSetting(ParticleSetting::SingleColorTransp(
+                                        color,
+                                    ))
+                                }))
+                                .width(100)
+                                .height(100)
+                            ],
+                            row![
+                                "Value: ",
+                                slider(0.0..=1.0, value, move |val| {
+                                    let mut color = hsv_to_color(hue, saturation, val);
+                                    color.a = alpha;
+                                    Message::SetParticleSetting(ParticleSetting::SingleColorTransp(
+                                        color,
+                                    ))
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ],
+                            row![
+                                "Alpha: ",
+                                slider(0.0..=1.0, alpha, move |alpha| {
+                                    let mut color = hsv_to_color(hue, saturation, value);
+                                    color.a = alpha;
+                                    Message::SetParticleSetting(ParticleSetting::SingleColorTransp(
+                                        color,
+                                    ))
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ]
+                        ]);
                     }
                     ParticleSetting::SingleColor(color) => {
-                        setter = setter.push(row!["Color: "]);
+                        let (hue, saturation, value) = color_to_hsv(color);
+                        setter = setter.push(column![
+                            row![
+                                "Color: ",
+                                canvas(WheelProgram::new(hue, saturation, value, move |h, s| {
+                                    let color = hsv_to_color(h, s, value);
+                                    Message::SetParticleSetting(ParticleSetting::SingleColor(color))
+                                }))
+                                .width(100)
+                                .height(100)
+                            ],
+                            row![
+                                "Value: ",
+                                slider(0.0..=1.0, value, move |val| {
+                                    let color = hsv_to_color(hue, saturation, val);
+                                    Message::SetParticleSetting(ParticleSetting::SingleColor(color))
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ]
+                        ]);
                     }
                 }
                 setter.spacing(10).into()
@@ -390,24 +475,120 @@ mod widgets {
                         ]);
                     }
                     ParticleSetting::SingleColorSized(color, size) => {
-                        setter = setter.push(row![
-                            "Color: ",
-                            "Size: ",
-                            NumberInput::new(&size, 0.01..5.0, move |num| {
-                                Message::SetParticleSettingInList(
-                                    idx,
-                                    ParticleSetting::SingleColorSized(color, num),
-                                )
-                            })
+                        let (hue, saturation, value) = color_to_hsv(color);
+                        setter = setter.push(column![
+                            row![
+                                "Color: ",
+                                canvas(WheelProgram::new(hue, saturation, value, move |h, s| {
+                                    let color = hsv_to_color(h, s, value);
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColorSized(color, size),
+                                    )
+                                }))
+                                .width(100)
+                                .height(100),
+                            ],
+                            row![
+                                "Value: ",
+                                slider(0.0..=1.0, value, move |val| {
+                                    let color = hsv_to_color(hue, saturation, val);
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColorSized(color, size),
+                                    )
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ],
+                            row![
+                                "Size: ",
+                                NumberInput::new(&size, 0.01..=5.0, move |num| {
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColorSized(color, num),
+                                    )
+                                })
+                                .step(0.01)
+                            ]
                         ]);
                     }
                     ParticleSetting::SingleColorTransp(color) => {
-                        setter = setter.push(row!["Color: "]);
+                        let alpha = color.a;
+                        let (hue, saturation, value) = color_to_hsv(color);
+                        setter = setter.push(column![
+                            row![
+                                "Color: ",
+                                canvas(WheelProgram::new(hue, saturation, value, move |h, s| {
+                                    let mut color = hsv_to_color(h, s, value);
+                                    color.a = alpha;
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColorTransp(color),
+                                    )
+                                }))
+                                .width(100)
+                                .height(100)
+                            ],
+                            row![
+                                "Value: ",
+                                slider(0.0..=1.0, value, move |val| {
+                                    let mut color = hsv_to_color(hue, saturation, val);
+                                    color.a = alpha;
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColorTransp(color),
+                                    )
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ],
+                            row![
+                                "Alpha: ",
+                                slider(0.0..=1.0, alpha, move |alpha| {
+                                    let mut color = hsv_to_color(hue, saturation, value);
+                                    color.a = alpha;
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColorTransp(color),
+                                    )
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ]
+                        ]);
                     }
                     ParticleSetting::SingleColor(color) => {
-                        setter = setter.push(row!["Color: "]);
+                        let (hue, saturation, value) = color_to_hsv(color);
+                        setter = setter.push(column![
+                            row![
+                                "Color: ",
+                                canvas(WheelProgram::new(hue, saturation, value, move |h, s| {
+                                    let color = hsv_to_color(h, s, value);
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColor(color),
+                                    )
+                                }))
+                                .width(100)
+                                .height(100)
+                            ],
+                            row![
+                                "Value: ",
+                                slider(0.0..=1.0, value, move |val| {
+                                    let color = hsv_to_color(hue, saturation, val);
+                                    Message::SetParticleSettingInList(
+                                        idx,
+                                        ParticleSetting::SingleColor(color),
+                                    )
+                                })
+                                .step(0.01)
+                                .width(100)
+                            ]
+                        ]);
                     }
                 }
+
                 setter.into()
             }
         }

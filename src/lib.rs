@@ -12,7 +12,7 @@ mod tests {
     static SINGLE_OBJECT: &str = "examples/SingleObject/cube.obj";
     static MULTI_OBJECT: &str = "examples/MultiObject/ball_suzzane.obj";
 
-    use color_art::Color;
+    use iced::Color;
     use wavefront_obj::obj::Primitive;
 
     use super::{cloud::*, particle::*};
@@ -116,7 +116,12 @@ mod tests {
 
     #[test]
     fn color() {
-        let color = Color::new(128, 74, 112, 0.7);
+        let color = Color {
+            r: 0.5,
+            g: 0.2890625,
+            b: 0.4375,
+            a: 0.7,
+        };
         let no_trans = parse_mc_color(&color, false);
         let with_trans = parse_mc_color(&color, true);
 

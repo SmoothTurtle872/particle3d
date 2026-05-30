@@ -1,18 +1,18 @@
 pub mod particle {
 
-    use color_art::Color;
+    use iced::Color;
 
     use crate::particle::ParticleSetting::SingleColorSized;
 
     pub fn parse_mc_color(color: &Color, transparency: bool) -> u32 {
-        let r = (color.red() as u32) << 16;
-        let g = (color.green() as u32) << 8;
-        let b = color.blue() as u32;
+        let r = ((color.r * 256.0) as u32) << 16;
+        let g = ((color.g * 256.0) as u32) << 8;
+        let b = (color.b * 256.0) as u32;
         let opaque = r + b + g;
         if !transparency {
             return opaque;
         } else {
-            let a = ((color.alpha() * 255.0) as u32) << 24;
+            let a = ((color.a * 255.0) as u32) << 24;
             let color = opaque + a;
             return color;
         }
@@ -252,7 +252,7 @@ pub mod particle {
             }
         }
 
-        pub fn get_option_list() -> [Particle; 97] {
+        pub fn get_option_list() -> [Particle; 101] {
             [
                 Self::AngryVillager,
                 Self::Ash,
@@ -351,6 +351,10 @@ pub mod particle {
                 Self::WhiteSmoke,
                 Self::Witch,
                 Self::Other,
+                Self::Dust,
+                Self::Flash,
+                Self::EntityEffect,
+                Self::Effect,
             ]
         }
     }
@@ -396,7 +400,8 @@ pub mod particle {
                 Particle::Flash | Particle::EntityEffect => {
                     Self::SingleColorTransp(Color::default())
                 }
-                Particle::Dust => SingleColorSized(Color::default(), 1.0),
+                Particle::Effect => Self::SingleColor(Color::default()),
+                Particle::Dust => Self::SingleColorSized(Color::default(), 1.0),
                 Particle::Other => Self::Other("".to_string()),
                 _ => Self::None,
             }

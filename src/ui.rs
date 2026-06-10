@@ -1,6 +1,6 @@
 pub mod app {
     use iced::{
-        Element,
+        Element, Theme,
         widget::{
             bottom, button, center, center_x, checkbox, column, container, pick_list, row,
             scrollable, text,
@@ -247,11 +247,15 @@ pub mod app {
             if self.is_multi && multi_object {
                 if let ParticleGroupType::Multi(particles) = &cloud.particle {
                     for (idx, _) in cloud.obj.iter().enumerate() {
-                        inputs = inputs.push(particle_selector(
-                            particles[idx].0.clone(),
-                            particles[idx].1.clone(),
-                            Some(idx),
-                        ));
+                        inputs = inputs.push(
+                            container(particle_selector(
+                                particles[idx].0.clone(),
+                                particles[idx].1.clone(),
+                                Some(idx),
+                            ))
+                            .style(|theme: &Theme| container::bordered_box(theme))
+                            .padding(10),
+                        );
                     }
                 }
             } else {
@@ -261,7 +265,9 @@ pub mod app {
                 }
             }
 
-            container(scrollable(inputs.spacing(10))).into()
+            container(scrollable(inputs.spacing(10).spacing(10).padding(10)))
+                .style(|theme: &Theme| container::bordered_box(theme))
+                .into()
         }
         fn edge_subdividor(&self) -> Element<'_, Message> {
             let mut widget = column![

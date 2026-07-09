@@ -101,7 +101,7 @@ pub mod cloud {
             edges
         }
 
-        pub fn output(&self, rotation_space: RotationSpace) -> Result<String, &str> {
+        pub fn output(&self, rotation_space: RotationSpace, scale: f64) -> Result<String, &str> {
             let mut output: String = String::from(
                 "# File Generated with Particle3D - https://github.com/SmoothTurtle872/particle3d \n",
             );
@@ -117,9 +117,9 @@ pub mod cloud {
                             "particle {}{} {rotation_space}{} {rotation_space}{} {rotation_space}{} 0 0 0 0 1 force @a\n",
                             vert.particle.output(),
                             vert.particle_setting.output(),
-                            vert.vertex.x,
-                            vert.vertex.y,
-                            vert.vertex.z
+                            vert.vertex.x * scale,
+                            vert.vertex.y * scale,
+                            vert.vertex.z * scale
                         );
                         output += &line;
                     }

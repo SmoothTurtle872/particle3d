@@ -7,7 +7,7 @@ pub mod app {
         },
     };
 
-    use iced_aw::NumberInput;
+    use iced_aw::{NumberInput, number_input};
     use rfd::FileDialog;
     use std::fs;
 
@@ -20,7 +20,6 @@ pub mod app {
         },
         widgets::*,
     };
-    #[derive(Default)]
     pub struct App {
         cloud: State,
         pub title: String,
@@ -28,6 +27,21 @@ pub mod app {
         subdivide_edges: bool,
         edge_subdivisions: Option<i32>,
         rotation_space: RotationSpace,
+        scale: f64,
+    }
+
+    impl Default for App {
+        fn default() -> Self {
+            Self {
+                cloud: State::default(),
+                title: String::new(),
+                is_multi: false,
+                subdivide_edges: false,
+                edge_subdivisions: None,
+                rotation_space: RotationSpace::default(),
+                scale: 1.0,
+            }
+        }
     }
 
     impl App {
@@ -85,6 +99,7 @@ pub mod app {
                         }
                     }
                 }
+                Message::SetScaleOveride(scale) => state.scale = scale,
             }
         }
 
@@ -100,7 +115,7 @@ pub mod app {
                     .save_file();
 
                 if let Some(path) = export_path {
-                    let output = cloud.output(self.rotation_space.clone());
+                    let output = cloud.output(self.rotation_space.clone(), self.scale);
                     if let Ok(data) = output {
                         _ = fs::write(path, data);
                     }
@@ -166,6 +181,7 @@ pub mod app {
         SetEdgeSubdivisions(i32),
         SetRotationSpace(RotationSpace),
         Export,
+        SetScaleOveride(f64),
     }
 
     #[derive(Debug, Clone, Default)]
@@ -185,24 +201,29 @@ pub mod app {
             let column = column![
                 self.particle_selector(cloud),
                 self.edge_subdividor(),
-                self.rotation_selector()
+                self.rotation_selector(),
+                self.scale_selector()
             ]
             .spacing(10);
             column![
                 center(column),
-                center_x(bottom(
-                    row![
-                        self.load_button("Change OBJ File: ".to_string(), true),
-                        " | ",
+                center_x(
+                    bottom(
                         row![
-                            "Export to mcfunction: ",
-                            button("Export").on_press(Message::Export)
+                            self.load_button("Change OBJ File: ".to_string(), true),
+                            " | ",
+                            row![
+                                "Export to mcfunction: ",
+                                button("Export").on_press(Message::Export)
+                            ]
+                            .spacing(10)
                         ]
                         .spacing(10)
-                    ]
-                    .spacing(10)
-                ))
+                    )
+                    .padding(10)
+                )
             ]
+            .spacing(10)
             .into()
         }
         fn error(&self) -> Element<'_, Message> {
@@ -298,6 +319,14 @@ pub mod app {
                     Some(self.rotation_space.clone()),
                     Message::SetRotationSpace
                 )
+            ]
+            .spacing(10)
+            .into()
+        }
+        fn scale_selector(&self) -> Element<'_, Message> {
+            row![
+                "Scale: ",
+                number_input(&self.scale, 0.01..=100.0, Message::SetScaleOveride).step(0.01)
             ]
             .spacing(10)
             .into()

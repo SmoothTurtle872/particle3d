@@ -1,0 +1,53 @@
+name: Feature Request
+description: >-
+  Request a new feature or particle to be added
+title: "[Feature Request]:"
+assignees:
+  - SmoothTurtle872
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thankyou for your request.
+        Please note that unless this is
+        - **a** a simple request
+        - **b** a request in which I will be able to practise using a crate that I need to learn
+        - **c** an incredibly important feature
+        - **d** a new particle or series of new particles
+        I will be unlikely to add it due to me not activly developing this app
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type of Feature (Required)
+      description: Is this a new particle or is it another feature?
+      multiple: false
+      options:
+        - "⸺"
+        - "Particle"
+        - "Feature"
+    validations:
+      required: true
+
+
+  - type: textarea
+    id: recreation
+    attributes:
+      label: Steps to recreate (Required)
+      description: Please provide the steps to recreate error
+      placeholder: >-
+        1. Place provided file into program
+        2. Set settings to xyz
+        3. Place output into minecarft datapack
+        4. Run the function
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description (Required)
+      description: Please provide either a list of particles or a description of the feature
+    validations:
+      required: false

@@ -1,15 +1,16 @@
 name: Bug Report
 description: >-
-  Do not create a repeat report unless it has been closed but is still not resolved
-title: "[BUG]:" 
-assignees: 
+  Report a bug. !A MISSING PARTICLE IS NOT A BUG!
+title: "[BUG]:"
+assignees:
   - SmoothTurtle872
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thankyou for filing this report. Hopefully it will be patched soon
+        Thankyou for filing this report.
+        I will do my best to patch it soon, however this app will likely not recive many updates
 
   - type: dropdown
     id: type
@@ -19,12 +20,12 @@ body:
       multiple: false
       options:
         - "⸺"
-        - "Command Output"
         - "Program Error"
+        - "Output Error"
         - "Other (Describe in notes section)"
     validations:
       required: true
-        
+
   - type: input
     id: version
     attributes:
@@ -37,15 +38,16 @@ body:
   - type: textarea
     id: recreation
     attributes:
-      label: Steps to recreate (Requierd)
+      label: Steps to recreate (Required)
       description: Please provide the steps to recreate error
       placeholder: >-
         1. Place provided file into program
-        2. Place output into minecarft datapack
-        3. Run the function
+        2. Set settings to xyz
+        3. Place output into minecarft datapack
+        4. Run the function
     validations:
       required: true
-        
+
   - type: textarea
     id: notes
     attributes:
@@ -69,4 +71,3 @@ body:
       description: Provide the error recieved
     validations:
       required: true
-      

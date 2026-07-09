@@ -52,7 +52,7 @@ pub mod app {
         pub fn view(state: &App) -> Element<'_, Message> {
             match &state.cloud {
                 State::Unloaded => state.unloaded(),
-                State::Error => state.error(),
+                State::Error(err) => state.error(err),
                 State::Loaded(cloud) => state.loaded(cloud),
             }
         }
@@ -161,7 +161,7 @@ pub mod app {
                     );
                     match cloud_loader {
                         Ok(cloud) => self.cloud = State::Loaded(cloud),
-                        Err(_) => self.cloud = State::Error,
+                        Err(err) => self.cloud = State::Error(err.message),
                     }
                 }
                 None => {}
@@ -188,7 +188,7 @@ pub mod app {
     pub enum State {
         #[default]
         Unloaded,
-        Error,
+        Error(String),
         Loaded(ParticleCloud),
     }
 
@@ -226,8 +226,12 @@ pub mod app {
             .spacing(10)
             .into()
         }
-        fn error(&self) -> Element<'_, Message> {
-            center(self.load_button("Error Loading OBJ".to_string(), false)).into()
+        fn error(&self, err: &String) -> Element<'_, Message> {
+            center(self.load_button(
+                format!("{}: {}", "Error Loading OBJ".to_string(), err),
+                false,
+            ))
+            .into()
         }
     }
 

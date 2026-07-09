@@ -2801,6 +2801,7 @@ dependencies = [
  "iced",
  "iced_aw",
  "iced_color_wheel",
+ "image",
  "rfd",
  "wavefront_obj",
 ]

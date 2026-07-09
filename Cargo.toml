@@ -7,6 +7,7 @@ edition = "2024"
 iced = {version="0.14.0", features=["image"]}
 iced_aw = "0.14.1"
 iced_color_wheel = "0.1.1"
+image = "0.25.10"
 rfd = "0.17.2"
 wavefront_obj = "11.0.0"
 

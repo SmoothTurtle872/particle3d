@@ -2,8 +2,6 @@ pub mod particle {
 
     use iced::Color;
 
-    use crate::particle::ParticleSetting::SingleColorSized;
-
     pub fn parse_mc_color(color: &Color, transparency: bool) -> u32 {
         let r = ((color.r * 256.0) as u32) << 16;
         let g = ((color.g * 256.0) as u32) << 8;

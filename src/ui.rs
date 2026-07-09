@@ -338,7 +338,7 @@ mod widgets {
     use super::app::Message;
     use iced::{
         Element,
-        widget::{Button, canvas, column, pick_list, row, slider, text, text_input},
+        widget::{canvas, column, pick_list, row, slider, text, text_input},
     };
 
     use iced_aw::NumberInput;
